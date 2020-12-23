@@ -7,6 +7,9 @@ const worker = Tesseract.createWorker();
     await worker.load()
     await worker.loadLanguage('eng')
     await worker.initialize('eng')
+    await worker.setParameters({
+        tessedit_char_whitelist: '0123456789'
+    })
 
 
     let x = await puppeteer.launch();
@@ -26,13 +29,18 @@ const worker = Tesseract.createWorker();
 
         let priceE = await element.$(".zu-side strong")
         if(priceE == null) continue
-
-        await priceE.screenshot({ path: 'hn.png' });
-        
-        const { data: { text } } = await worker.recognize('./hn.png');
-        console.log(text);
+        console.log(await getElementNumber(priceE))
+        let sizeE = await element.$(".details-item.tag .strongbox:nth-of-type(3)")
+        if(sizeE == null) continue
+        console.log(await getElementNumber(sizeE))
     }
 
     await browser.close();
     await worker.terminate();
 })();
+
+async function getElementNumber(element: puppeteer.ElementHandle){
+    await element.screenshot({ path: 'hn.png' });
+    const { data: { text } } = await worker.recognize('./hn.png')
+    return text
+}
